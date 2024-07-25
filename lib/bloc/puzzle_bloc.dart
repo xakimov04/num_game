@@ -99,7 +99,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   @override
-  Future<void> close() {// History of tile states
+  Future<void> close() {
     _timer.cancel();
     return super.close();
   }
