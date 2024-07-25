@@ -5,10 +5,12 @@ import 'puzzle_state.dart';
 
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   late Timer _timer;
+  final List<List<int>> _history = []; 
 
   PuzzleBloc() : super(PuzzleInitial()) {
     on<InitializePuzzle>((event, emit) {
       emit(PuzzleInitial());
+      _history.clear(); 
       _startTimer();
     });
 
@@ -21,6 +23,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           (tappedIndex + 1 == emptyIndex && emptyIndex % 4 != 0) ||
           (tappedIndex - 4 == emptyIndex) ||
           (tappedIndex + 4 == emptyIndex)) {
+        
+        
+        _history.add(List.from(newTiles));
+
         newTiles[emptyIndex] = newTiles[tappedIndex];
         newTiles[tappedIndex] = 0;
 
@@ -42,6 +48,18 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             remainingTime: state.remainingTime,
           ));
         }
+      }
+    });
+
+    on<UndoMove>((event, emit) {
+      if (_history.isNotEmpty) {
+        List<int> previousTiles = _history.removeLast();
+        emit(PuzzleUpdated(
+          tiles: previousTiles,
+          score: state.score,
+          bestScore: state.bestScore,
+          remainingTime: state.remainingTime,
+        ));
       }
     });
 
@@ -81,7 +99,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() {// History of tile states
     _timer.cancel();
     return super.close();
   }
